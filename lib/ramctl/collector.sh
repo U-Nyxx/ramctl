@@ -45,9 +45,8 @@ ramctl_exec_storage_health() {
     done
     
     if [ $found -eq 0 ]; then
-        # Fallback dump status mount
         echo "Smart Storage Status : Normal (sysfs lifetime bypass)"
-        df -h /data | awk "NR==2{print \"Storage Used        : \"\$3\" / \"\$2\" (\"\$5\")\"}"
+        df -h /data 2>/dev/null | awk "NR==2{print \"Storage Used        : \"\$3\" / \"\$2\" (\"\$5\")\"}"
     fi
     '
 }
@@ -61,3 +60,4 @@ ramctl_top_user_apps() {
         printf "%-8s %-12s %-10s %s\n" "$pid" "$user" "$rss" "$name"
     done
 }
+

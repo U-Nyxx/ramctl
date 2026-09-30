@@ -1,46 +1,69 @@
 #!/data/data/com.termux/files/usr/bin/bash
 
+PET_CONFIG_DIR="$HOME/.config/ramctl"
+PET_CONFIG_FILE="$PET_CONFIG_DIR/pet.conf"
+
+ramctl_get_saved_pet() {
+    if [ -f "$PET_CONFIG_FILE" ]; then
+        cat "$PET_CONFIG_FILE"
+    else
+        echo "cat"
+    fi
+}
+
+ramctl_save_pet() {
+    mkdir -p "$PET_CONFIG_DIR"
+    echo "$1" > "$PET_CONFIG_FILE"
+}
+
 ramctl_render_pet() {
-    local mode="${1:-cat}"
+    local mode="$1"
     local frame="${2:-0}"
+    
     case "$mode" in
         prabowo)
             if [ "$frame" -eq 0 ]; then
-                echo -e "${C_CYAN}   /\\___/\\   \n  (  o.o  )  [ GENERAL CAT - PRABOWO EDITION ]\n   (   \"   )  BOOSTER Engine v2.0\n    \\_^_/    Status: Active & Live${C_RESET}"
+                echo -e "${C_CYAN}   /\\___/\\   \n  (  o.o  )  [ GENERAL CAT - PRABOWO ]\n   (   \"   )  BOOSTER Engine v2.0\n    \\_^_/    Status: High Performance${C_RESET}"
             else
-                echo -e "${C_CYAN}   /\\___/\\   \n  (  -.-  )  [ GENERAL CAT - PRABOWO EDITION ]\n   (   =   )  BOOSTER Engine v2.0\n    \\_^_/    Status: Active & Live${C_RESET}"
+                echo -e "${C_CYAN}   /\\___/\\   \n  (  -.-  )  [ GENERAL CAT - PRABOWO ]\n   (   =   )  BOOSTER Engine v2.0\n    \\_^_/    Status: High Performance${C_RESET}"
             fi
             ;;
         petdex)
-            echo -e "${C_MAGENTA}   /\\_/\\  \n  (  v.v )  [ PETDEX DEV CUSTOM ]\n  /  |  \\   BOOSTER Engine v2.0\n  (__|__)   Powered by Petdex Custom Art${C_RESET}"
+            if [ "$frame" -eq 0 ]; then
+                echo -e "${C_MAGENTA}   /\\_/\\  \n  (  v.v )  [ PETDEX DEV CUSTOM ]\n  /  |  \\   BOOSTER Engine v2.0\n  (__|__)   Status: Animated Active${C_RESET}"
+            else
+                echo -e "${C_MAGENTA}   /\\_/\\  \n  (  o.o )  [ PETDEX DEV CUSTOM ]\n  /  |  \\   BOOSTER Engine v2.0\n  (__|__)   Status: Animated Active${C_RESET}"
+            fi
             ;;
         cat|*)
             if [ "$frame" -eq 0 ]; then
-                echo -e "${C_YELLOW}   /\\_/\\   \n  ( o.o )  BOOSTER ENGINE v2.0\n   > ^ <   Status: Active & Live${C_RESET}"
+                echo -e "${C_YELLOW}   /\\_/\\   \n  ( o.o )  BOOSTER ENGINE v2.0\n   > ^ <   Status: Active & Optimized${C_RESET}"
             else
-                echo -e "${C_YELLOW}   /\\_/\\   \n  ( -.- )  BOOSTER ENGINE v2.0\n   > ^ <   Status: Active & Live${C_RESET}"
+                echo -e "${C_YELLOW}   /\\_/\\   \n  ( -.- )  BOOSTER ENGINE v2.0\n   > ^ <   Status: Active & Optimized${C_RESET}"
             fi
             ;;
     esac
 }
 
-# Animasi Dashboard Realtime
-ramctl_tui_live_monitor() {
+ramctl_live_status_dashboard() {
     clear
-    tput civis # Sembunyikan kursor
-    trap 'tput cnorm; clear; return' INT
+    tput civis
+    local active_pet
+    active_pet=$(ramctl_get_saved_pet)
     
+    # Sinyal Ctrl+C dikembalikan aman ke prompt utama
+    trap 'tput cnorm; echo -e "\n${C_GRAY}[Dibatalkan via Ctrl+C]${C_RESET}\n"; return' INT
+
     local frame=0
-    echo -e "${C_GRAY}Tekan ${C_RED}Ctrl+C${C_GRAY} untuk keluar dari Live Monitor.${C_RESET}\n"
+    echo -e "${C_GRAY}Tekan ${C_YELLOW}Ctrl+C${C_GRAY} untuk kembali ke prompt BOOSTER.${C_RESET}\n"
 
     while true; do
         tput cup 2 0
         ramctl_fetch_memory
-        ramctl_render_pet "cat" "$frame"
+        ramctl_render_pet "$active_pet" "$frame"
         
-        echo -e "\n${C_BOLD}${C_CYAN}─── REALTIME MONITORING DASHBOARD ───${C_RESET}"
+        echo -e "\n${C_BOLD}${C_CYAN}─── BOOSTER LIVE MEMORY DASHBOARD ───${C_RESET}"
         
-        # Progress bar RAM
         local bar=""
         local filled=$((MEM_USAGE_PCT / 5))
         for ((i=0; i<20; i++)); do
@@ -60,10 +83,14 @@ ramctl_tui_live_monitor() {
 
 ramctl_interactive_shell() {
     clear
-    ramctl_render_pet "cat" 0
-    echo -e "${C_GRAY}Tekan ${C_YELLOW}/${C_GRAY} untuk membuka Floating Navbar instan, atau ketik perintah.${C_RESET}\n"
+    trap '' INT  # Abaikan Ctrl+C di shell utama agar tidak langsung keluar tools
+    
+    local current_pet
+    current_pet=$(ramctl_get_saved_pet)
+    ramctl_render_pet "$current_pet" 0
+    echo -e "${C_GRAY}Tekan ${C_YELLOW}/${C_GRAY} untuk membuka Floating Navbar instan.${C_RESET}\n"
 
-    local commands=("/status" "/monitor" "/top-apps" "/storage" "/clean" "/sweep" "/sysinfo" "/pet" "/sync" "/help" "/exit")
+    local commands=("/status" "/top-apps" "/storage" "/clean" "/sweep" "/sysinfo" "/pet" "/sync" "/help" "/exit")
 
     while true; do
         printf "${C_BOLD}${C_GREEN}booster${C_RESET} ${C_CYAN}❯${C_RESET} "
@@ -76,7 +103,7 @@ ramctl_interactive_shell() {
 
             if [ "$char" == "/" ] && [ -z "$input" ]; then
                 echo "/"
-                CMD_SELECTED=$(printf "/status   | Detail statistik RAM & Swap\n/monitor  | TUI Dashboard Monitor Realtime Animasi\n/top-apps | Analisis Top 10 User Apps pemakan RAM\n/storage  | Evaluasi Hardware Life UFS/eMMC (Root)\n/clean    | Force Kernel Release Cache RAM (Root)\n/sweep    | Sapu bersih Junk & Cache aplikasi (Root)\n/sysinfo  | Informasi Ringkas OS, Kernel, & Device\n/pet      | Ganti Maskot Pet (cat / prabowo / petdex)\n/sync     | Custom Git Sync ke Private Repository\n/help     | Bantuan Penggunaan\n/exit     | Keluar Shell" | fzf \
+                CMD_SELECTED=$(printf "/status   | Live Dashboard Statistik RAM, Swap, & Animasi\n/top-apps | Analisis Top 10 User Apps pemakan RAM\n/storage  | Evaluasi Hardware Life UFS/eMMC (Root)\n/clean    | Force Kernel Release Cache RAM (Root)\n/sweep    | Sapu bersih Junk & Cache aplikasi (Root)\n/sysinfo  | Informasi Ringkas OS, Kernel, & Device\n/pet      | Custom Ganti Pet Maskot Permanen\n/sync     | Custom Git Sync ke Private Repository\n/help     | Bantuan Penggunaan\n/exit     | Keluar dari Tools BOOSTER" | fzf \
                     --height 50% \
                     --layout=reverse \
                     --border=rounded \
@@ -137,35 +164,31 @@ ramctl_interactive_shell() {
 
         case "$input" in
             /status)
-                ramctl_fetch_memory
-                echo -e "\n${C_BOLD}${C_CYAN}─── BOOSTER Memory Metrics ───${C_RESET}"
-                echo -e "RAM Total   : ${MEM_TOTAL} KB"
-                echo -e "RAM Used    : ${C_GREEN}${MEM_USED} KB${C_RESET} (${MEM_USAGE_PCT}%)"
-                echo -e "RAM Avail   : ${C_CYAN}${MEM_AVAIL} KB${C_RESET}"
-                echo -e "Swap Total  : ${SWAP_TOTAL} KB"
-                echo -e "Swap Used   : ${SWAP_USED} KB (${SWAP_PCT}%)\n"
-                ;;
-            /monitor)
-                ramctl_tui_live_monitor
+                ramctl_live_status_dashboard
                 clear
-                ramctl_render_pet "cat" 0
+                current_pet=$(ramctl_get_saved_pet)
+                ramctl_render_pet "$current_pet" 0
                 echo ""
                 ;;
             /top-apps)
                 echo ""
-                ramctl_top_user_apps
-                echo -e "\n${C_GRAY}Ingin menghentikan salah satu aplikasi di atas?${C_RESET}"
-                read -p "$(echo -e ${C_YELLOW}"Masukkan PID (Kosongkan jika tidak): "${C_RESET})" target_pid
-                if [ -n "$target_pid" ]; then
-                    ramctl_run_as_root "kill -9 $target_pid 2>/dev/null || true"
-                    echo -e "${C_GREEN}✓ Proses PID $target_pid berhasil dihentikan!${C_RESET}\n"
-                else
-                    echo ""
-                fi
+                (
+                    trap 'echo -e "\n${C_GRAY}[Dibatalkan via Ctrl+C]${C_RESET}\n"; return' INT
+                    ramctl_top_user_apps
+                    echo -e "\n${C_GRAY}Ingin menghentikan salah satu aplikasi di atas?${C_RESET}"
+                    read -p "$(echo -e ${C_YELLOW}"Masukkan PID (Kosongkan jika tidak): "${C_RESET})" target_pid
+                    if [ -n "$target_pid" ]; then
+                        ramctl_run_as_root "kill -9 $target_pid 2>/dev/null || true"
+                        echo -e "${C_GREEN}✓ Proses PID $target_pid berhasil dihentikan!${C_RESET}\n"
+                    fi
+                )
                 ;;
             /storage)
                 echo ""
-                ramctl_exec_storage_health
+                (
+                    trap 'echo -e "\n${C_GRAY}[Dibatalkan via Ctrl+C]${C_RESET}\n"; return' INT
+                    ramctl_exec_storage_health
+                )
                 echo ""
                 ;;
             /clean)
@@ -185,11 +208,14 @@ ramctl_interactive_shell() {
                 echo -e "Device    : $(getprop ro.product.model 2>/dev/null || echo 'Android Device')\n"
                 ;;
             /pet)
-                echo -e "\n${C_BOLD}${C_CYAN}--- Custom Pet Art Selector ---${C_RESET}"
-                read -p "$(echo -e ${C_YELLOW}"Pilih Maskot (cat / prabowo / petdex): "${C_RESET})" pet_choice
-                clear
-                ramctl_render_pet "$pet_choice" 0
-                echo ""
+                echo -e "\n${C_BOLD}${C_CYAN}--- Custom Pet Selector (Persistent) ---${C_RESET}"
+                read -p "$(echo -e ${C_YELLOW}"Pilih Maskot Permanen (cat / prabowo / petdex): "${C_RESET})" pet_choice
+                if [ -n "$pet_choice" ]; then
+                    ramctl_save_pet "$pet_choice"
+                    clear
+                    ramctl_render_pet "$pet_choice" 0
+                    echo -e "\n${C_GREEN}✓ Maskot '$pet_choice' berhasil disimpan secara permanen!${C_RESET}\n"
+                fi
                 ;;
             /sync)
                 echo -e "\n${C_BOLD}${C_CYAN}⚙️  BOOSTER AUTO-SYNC ENGINE${C_RESET}"
@@ -223,6 +249,7 @@ ramctl_interactive_shell() {
                 ;;
             /exit)
                 echo -e "${C_GRAY}Sampai jumpa!${C_RESET}"
+                trap - INT
                 break
                 ;;
             "")
