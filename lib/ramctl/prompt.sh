@@ -2,39 +2,68 @@
 
 ramctl_render_pet() {
     local mode="${1:-cat}"
+    local frame="${2:-0}"
     case "$mode" in
         prabowo)
-            echo -e "${C_CYAN}"
-            echo "   /\_/\   "
-            echo "  (  o.o  )  [ GENERAL CAT - PRABOWO EDITION ]"
-            echo "   (   \"   )  BOOSTER Engine v2.0"
-            echo "    \_^_/    Ready to Optimize!"
-            echo -e "${C_RESET}"
+            if [ "$frame" -eq 0 ]; then
+                echo -e "${C_CYAN}   /\\___/\\   \n  (  o.o  )  [ GENERAL CAT - PRABOWO EDITION ]\n   (   \"   )  BOOSTER Engine v2.0\n    \\_^_/    Status: Active & Live${C_RESET}"
+            else
+                echo -e "${C_CYAN}   /\\___/\\   \n  (  -.-  )  [ GENERAL CAT - PRABOWO EDITION ]\n   (   =   )  BOOSTER Engine v2.0\n    \\_^_/    Status: Active & Live${C_RESET}"
+            fi
             ;;
         petdex)
-            echo -e "${C_MAGENTA}"
-            echo "   /\_/\  "
-            echo "  (  v.v )  [ PETDEX DEV CUSTOM ]"
-            echo "  /  |  \   BOOSTER Engine v2.0"
-            echo "  (__|__)   Powered by Petdex Custom GIF/Art"
-            echo -e "${C_RESET}"
+            echo -e "${C_MAGENTA}   /\\_/\\  \n  (  v.v )  [ PETDEX DEV CUSTOM ]\n  /  |  \\   BOOSTER Engine v2.0\n  (__|__)   Powered by Petdex Custom Art${C_RESET}"
             ;;
         cat|*)
-            echo -e "${C_YELLOW}"
-            echo "   /\_/\   "
-            echo "  ( o.o )  BOOSTER ENGINE v2.0"
-            echo "   > ^ <   Status: Active & Optimized"
-            echo -e "${C_RESET}"
+            if [ "$frame" -eq 0 ]; then
+                echo -e "${C_YELLOW}   /\\_/\\   \n  ( o.o )  BOOSTER ENGINE v2.0\n   > ^ <   Status: Active & Live${C_RESET}"
+            else
+                echo -e "${C_YELLOW}   /\\_/\\   \n  ( -.- )  BOOSTER ENGINE v2.0\n   > ^ <   Status: Active & Live${C_RESET}"
+            fi
             ;;
     esac
 }
 
+# Animasi Dashboard Realtime
+ramctl_tui_live_monitor() {
+    clear
+    tput civis # Sembunyikan kursor
+    trap 'tput cnorm; clear; return' INT
+    
+    local frame=0
+    echo -e "${C_GRAY}Tekan ${C_RED}Ctrl+C${C_GRAY} untuk keluar dari Live Monitor.${C_RESET}\n"
+
+    while true; do
+        tput cup 2 0
+        ramctl_fetch_memory
+        ramctl_render_pet "cat" "$frame"
+        
+        echo -e "\n${C_BOLD}${C_CYAN}─── REALTIME MONITORING DASHBOARD ───${C_RESET}"
+        
+        # Progress bar RAM
+        local bar=""
+        local filled=$((MEM_USAGE_PCT / 5))
+        for ((i=0; i<20; i++)); do
+            if [ $i -lt $filled ]; then bar="${bar}█"; else bar="${bar}░"; fi
+        done
+        
+        echo -e "RAM Usage  : [${C_GREEN}${bar}${C_RESET}] ${MEM_USAGE_PCT}% (${MEM_USED} / ${MEM_TOTAL} KB)"
+        echo -e "RAM Avail  : ${C_CYAN}${MEM_AVAIL} KB${C_RESET}"
+        echo -e "Swap Usage : ${SWAP_USED} / ${SWAP_TOTAL} KB (${SWAP_PCT}%)"
+        echo -e "Uptime     : $(uptime -p 2>/dev/null || uptime)"
+        
+        frame=$(((frame + 1) % 2))
+        sleep 1
+    done
+    tput cnorm
+}
+
 ramctl_interactive_shell() {
     clear
-    ramctl_render_pet "cat"
+    ramctl_render_pet "cat" 0
     echo -e "${C_GRAY}Tekan ${C_YELLOW}/${C_GRAY} untuk membuka Floating Navbar instan, atau ketik perintah.${C_RESET}\n"
 
-    local commands=("/status" "/top-apps" "/storage" "/clean" "/sweep" "/sysinfo" "/pet" "/sync" "/help" "/exit")
+    local commands=("/status" "/monitor" "/top-apps" "/storage" "/clean" "/sweep" "/sysinfo" "/pet" "/sync" "/help" "/exit")
 
     while true; do
         printf "${C_BOLD}${C_GREEN}booster${C_RESET} ${C_CYAN}❯${C_RESET} "
@@ -45,10 +74,9 @@ ramctl_interactive_shell() {
         while true; do
             IFS= read -r -s -n 1 char
 
-            # INSTANT TRIGGER /
             if [ "$char" == "/" ] && [ -z "$input" ]; then
                 echo "/"
-                CMD_SELECTED=$(printf "/status   | Detail statistik RAM & Swap\n/top-apps | Analisis Top 10 User Apps pemakan RAM\n/storage  | Evaluasi Hardware Life UFS/eMMC (Root)\n/clean    | Force Kernel Release Cache RAM (Root)\n/sweep    | Sapu bersih Junk & Cache aplikasi (Root)\n/sysinfo  | Informasi Ringkas OS, Kernel, & Device\n/pet      | Ganti Maskot Pet (cat / prabowo / petdex)\n/sync     | Custom Git Sync ke Private Repository\n/help     | Bantuan Penggunaan\n/exit     | Keluar Shell" | fzf \
+                CMD_SELECTED=$(printf "/status   | Detail statistik RAM & Swap\n/monitor  | TUI Dashboard Monitor Realtime Animasi\n/top-apps | Analisis Top 10 User Apps pemakan RAM\n/storage  | Evaluasi Hardware Life UFS/eMMC (Root)\n/clean    | Force Kernel Release Cache RAM (Root)\n/sweep    | Sapu bersih Junk & Cache aplikasi (Root)\n/sysinfo  | Informasi Ringkas OS, Kernel, & Device\n/pet      | Ganti Maskot Pet (cat / prabowo / petdex)\n/sync     | Custom Git Sync ke Private Repository\n/help     | Bantuan Penggunaan\n/exit     | Keluar Shell" | fzf \
                     --height 50% \
                     --layout=reverse \
                     --border=rounded \
@@ -117,6 +145,12 @@ ramctl_interactive_shell() {
                 echo -e "Swap Total  : ${SWAP_TOTAL} KB"
                 echo -e "Swap Used   : ${SWAP_USED} KB (${SWAP_PCT}%)\n"
                 ;;
+            /monitor)
+                ramctl_tui_live_monitor
+                clear
+                ramctl_render_pet "cat" 0
+                echo ""
+                ;;
             /top-apps)
                 echo ""
                 ramctl_top_user_apps
@@ -154,7 +188,7 @@ ramctl_interactive_shell() {
                 echo -e "\n${C_BOLD}${C_CYAN}--- Custom Pet Art Selector ---${C_RESET}"
                 read -p "$(echo -e ${C_YELLOW}"Pilih Maskot (cat / prabowo / petdex): "${C_RESET})" pet_choice
                 clear
-                ramctl_render_pet "$pet_choice"
+                ramctl_render_pet "$pet_choice" 0
                 echo ""
                 ;;
             /sync)
