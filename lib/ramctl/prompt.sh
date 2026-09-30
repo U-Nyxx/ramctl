@@ -8,12 +8,8 @@ ramctl_interactive_shell() {
     while true; do
         read -p "ramctl > " input
 
-        # Jika pengguna mengetik '/'
         if [ "$input" == "/" ]; then
-            # Menampilkan floating interactive menu pakai fzf
-            CMD_SELECTED=$(printf "/status - Lihat statistik RAM & Swap\n/monitor - Realtime TUI Live Dashboard\n/storage - Health Life UFS / eMMC\n/kill-heavy - Top 5 Apps pemakan RAM terbesar\n/sweep - Bersihkan Junk & Cache aplikasi\n/clean - Drop Caches RAM (Root)\n/sysinfo - Ringkasan Perangkat & Kernel\n/sync - Auto Commit & Push ke GitHub Private\n/help - Bantuan\n/exit - Keluar" | fzf --height 40% --layout=reverse --border --prompt="Pilih Perintah > " --header="Gunakan panah [↑/↓] lalu [ENTER]")
-
-            # Ambil hanya nama perintahnya saja
+            CMD_SELECTED=$(printf "/status - Lihat statistik RAM & Swap\n/monitor - Realtime TUI Live Dashboard\n/storage - Health Life UFS / eMMC (Auto Root)\n/kill-heavy - Top 5 Apps pemakan RAM terbesar\n/sweep - Bersihkan Junk & Cache aplikasi (Auto Root)\n/clean - Drop Caches RAM (Auto Root)\n/sysinfo - Ringkasan Perangkat & Kernel\n/sync - Auto Commit & Push ke GitHub Private\n/help - Bantuan\n/exit - Keluar" | fzf --height 40% --layout=reverse --border --prompt="Pilih Perintah > " --header="Gunakan panah [↑/↓] lalu [ENTER]")
             input=$(echo "$CMD_SELECTED" | awk '{print $1}')
         fi
 
@@ -31,7 +27,7 @@ ramctl_interactive_shell() {
                 ;;
             /storage)
                 echo ""
-                ramctl_fetch_storage_health
+                ramctl_run_as_root "ramctl_fetch_storage_health"
                 echo ""
                 ;;
             /kill-heavy)
@@ -40,15 +36,14 @@ ramctl_interactive_shell() {
                 echo ""
                 ;;
             /sweep)
-                ramctl_check_root
-                echo -e "${C_YELLOW}Cleaning app cache & system logs...${C_RESET}"
-                rm -rf /data/local/tmp/* 2>/dev/null || true
-                echo -e "${C_GREEN}✓ Junk cleaned successfully!${C_RESET}\n"
+                echo -e "${C_YELLOW}Membersihkan cache aplikasi & log sistem...${C_RESET}"
+                ramctl_run_as_root "rm -rf /data/local/tmp/* /sdcard/Android/data/*/cache/* 2>/dev/null || true"
+                echo -e "${C_GREEN}✓ Junk berhasil dibersihkan via Root!${C_RESET}\n"
                 ;;
             /clean)
-                ramctl_check_root
-                echo 3 > /proc/sys/vm/drop_caches
-                echo -e "${C_GREEN}✓ Cache RAM berhasil dibersihkan!${C_RESET}\n"
+                echo -e "${C_YELLOW}Clearing RAM Drop Caches...${C_RESET}"
+                ramctl_run_as_root "echo 3 > /proc/sys/vm/drop_caches"
+                echo -e "${C_GREEN}✓ Cache RAM berhasil dibersihkan via Root!${C_RESET}\n"
                 ;;
             /sysinfo)
                 echo -e "\n${C_BOLD}--- System Info ---${C_RESET}"
@@ -61,7 +56,7 @@ ramctl_interactive_shell() {
                 cd ~/ramctl 2>/dev/null || true
                 ./install.sh >/dev/null 2>&1
                 git add .
-                git commit -m "auto-update via /sync"
+                git commit -m "auto-update: full integration auto-root & slash menu"
                 git push origin main
                 echo -e "${C_GREEN}✓ Berhasil terinstall & ter-push ke GitHub!${C_RESET}\n"
                 ;;
