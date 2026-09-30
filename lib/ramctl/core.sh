@@ -1,7 +1,7 @@
 #!/data/data/com.termux/files/usr/bin/bash
 
 RAMCTL_NAME="ramctl"
-RAMCTL_VERSION="1.1.0"
+RAMCTL_VERSION="1.2.0"
 
 C_RESET='\033[0m'
 C_BOLD='\033[1m'
@@ -9,14 +9,15 @@ C_RED='\033[31m'
 C_GREEN='\033[32m'
 C_YELLOW='\033[33m'
 C_CYAN='\033[36m'
+C_MAGENTA='\033[35m'
 C_GRAY='\033[90m'
 
-# Auto-Elevate ke Root via su -c
 ramctl_run_as_root() {
+    local cmd="$1"
     if [ "$(id -u)" -ne 0 ]; then
-        su -c "$1"
+        su -c "$cmd"
     else
-        eval "$1"
+        eval "$cmd"
     fi
 }
 
