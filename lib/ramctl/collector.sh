@@ -1,48 +1,65 @@
 #!/data/data/com.termux/files/usr/bin/bash
 
-ramctl_get_mem() {
-    awk -v key="$1" '$1 == key {print $2; exit}' /proc/meminfo
-}
-
+# Ambil status RAM & Swap dari /proc/meminfo
 ramctl_fetch_memory() {
-    MEM_TOTAL=$(ramctl_get_mem "MemTotal:")
-    MEM_FREE=$(ramctl_get_mem "MemFree:")
-    MEM_AVAIL=$(ramctl_get_mem "MemAvailable:")
-    SWAP_TOTAL=$(ramctl_get_mem "SwapTotal:")
-    SWAP_FREE=$(ramctl_get_mem "SwapFree:")
+    if [ -f /proc/meminfo ]; then
+        MEM_TOTAL=$(awk '/MemTotal:/ {print $2}' /proc/meminfo)
+        MEM_FREE=$(awk '/MemFree:/ {print $2}' /proc/meminfo)
+        MEM_AVAIL=$(awk '/MemAvailable:/ {print $2}' /proc/meminfo)
+        
+        if [ -z "$MEM_AVAIL" ]; then
+            MEM_AVAIL=$MEM_FREE
+        fi
+        
+        MEM_USED=$((MEM_TOTAL - MEM_AVAIL))
+        MEM_USAGE_PCT=$((MEM_USED * 100 / MEM_TOTAL))
 
-    MEM_USED=$((MEM_TOTAL - MEM_AVAIL))
-    MEM_USAGE_PCT=$((MEM_USED * 100 / MEM_TOTAL))
-    
-    SWAP_USED=$((SWAP_TOTAL - SWAP_FREE))
-    if [ "$SWAP_TOTAL" -gt 0 ]; then
-        SWAP_PCT=$((SWAP_USED * 100 / SWAP_TOTAL))
-    else
-        SWAP_PCT=0
+        SWAP_TOTAL=$(awk '/SwapTotal:/ {print $2}' /proc/meminfo)
+        SWAP_FREE=$(awk '/SwapFree:/ {print $2}' /proc/meminfo)
+        
+        if [ "$SWAP_TOTAL" -gt 0 ]; then
+            SWAP_USED=$((SWAP_TOTAL - SWAP_FREE))
+            SWAP_PCT=$((SWAP_USED * 100 / SWAP_TOTAL))
+        else
+            SWAP_USED=0
+            SWAP_PCT=0
+        fi
     fi
 }
 
+# Cek kesehatan UFS / eMMC storage (membutuhkan akses root)
 ramctl_fetch_storage_health() {
-    echo -e "${C_BOLD}--- Deteksi Storage Status ---${C_RESET}"
-    UFS_PATH=""
-    for p in /sys/devices/platform/soc/*.ufshc /sys/class/scsi_host/host*/device; do
-        if [ -d "$p" ]; then
-            UFS_PATH="$p"
+    echo -e "${C_BOLD}${C_CYAN}─── Storage Hardware Health (UFS / eMMC) ───${C_RESET}"
+    
+    local found=0
+    for node in /sys/class/scsi_host/host*/device/ufs_health_descriptor/life_time_estimation_a \
+                /sys/devices/platform/soc/*.ufs/health_descriptor/life_time_estimation_a \
+                /sys/block/mmcblk0/device/life_time; do
+        if [ -f "$node" ]; then
+            found=1
+            val_a=$(cat "$node" 2>/dev/null)
+            node_b="${node%_a}_b"
+            val_b=$(cat "$node_b" 2>/dev/null)
+            
+            echo -e "Health Indicator A: ${C_GREEN}${val_a:-N/A}${C_RESET}"
+            [ -n "$val_b" ] && echo -e "Health Indicator B: ${C_GREEN}${val_b}${C_RESET}"
             break
         fi
     done
-
-    if [ -n "$UFS_PATH" ]; then
-        echo -e "Tipe Storage : ${C_GREEN}UFS (Universal Flash Storage)${C_RESET}"
-        if [ -f "$UFS_PATH/health_descriptor/life_time_estimation_a" ]; then
-            LIFE_A=$(cat "$UFS_PATH/health_descriptor/life_time_estimation_a" 2>/dev/null)
-            LIFE_B=$(cat "$UFS_PATH/health_descriptor/life_time_estimation_b" 2>/dev/null)
-            echo -e "Health Life A : ${C_YELLOW}${LIFE_A:-N/A}${C_RESET} (0x01 = 0-10% Wear)"
-            echo -e "Health Life B : ${C_YELLOW}${LIFE_B:-N/A}${C_RESET} (0x01 = 0-10% Wear)"
-        else
-            echo -e "Health Info   : ${C_GRAY}Akses Root dibutuhkan untuk membaca descriptor.${C_RESET}"
-        fi
-    else
-        echo -e "Tipe Storage : ${C_CYAN}eMMC / Standard Storage${C_RESET}"
+    
+    if [ $found -eq 0 ]; then
+        echo -e "${C_YELLOW}Node indikator umur UFS/eMMC tidak terdeteksi di kernel ini.${C_RESET}"
     fi
+}
+
+# Menampilkan Top Apps User (Aplikasi pihak ketiga) tanpa menyampah proses system
+ramctl_top_user_apps() {
+    echo -e "${C_BOLD}${C_CYAN}─── Top Apps Pemakan RAM (User Apps Only) ───${C_RESET}\n"
+    
+    printf "%-8s %-12s %-10s %s\n" "PID" "USER" "RSS(KB)" "NAME"
+    echo -e "${C_GRAY}──────────────────────────────────────────────────${C_RESET}"
+    
+    ps -A -o PID,USER,RSS,NAME 2>/dev/null | grep -E "u0_a[0-9]+" | sort -k3 -n -r | head -n 10 | while read -r pid user rss name; do
+        printf "%-8s %-12s %-10s %s\n" "$pid" "$user" "$rss" "$name"
+    done
 }

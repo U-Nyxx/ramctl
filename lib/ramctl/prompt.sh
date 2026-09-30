@@ -3,88 +3,74 @@
 ramctl_interactive_shell() {
     clear
     echo -e "${C_BOLD}${C_CYAN}┌────────────────────────────────────────────────────────┐${C_RESET}"
-    echo -e "${C_BOLD}${C_CYAN}│${C_RESET}  ${C_BOLD}${C_YELLOW}⚡ RAMCTL INTERACTIVE SHELL${C_RESET} ${C_GRAY}v1.0.0 (Pro Max UI)${C_CYAN}    │${C_RESET}"
+    echo -e "${C_BOLD}${C_CYAN}│${C_RESET}  ${C_BOLD}${C_YELLOW}⚡ RAMCTL INTERACTIVE SHELL${C_RESET} ${C_GRAY}v1.1.0${C_CYAN}                 │${C_RESET}"
     echo -e "${C_BOLD}${C_CYAN}└────────────────────────────────────────────────────────┘${C_RESET}"
-    echo -e "${C_GRAY}Tekan tombol ${C_YELLOW}/${C_GRAY} untuk membuka Floating Command Navbar.${C_RESET}\n"
+    echo -e "${C_GRAY}Ketik ${C_YELLOW}/${C_GRAY} untuk membuka Floating Command Menu, atau ketik /exit untuk keluar.${C_RESET}\n"
 
     while true; do
         printf "${C_BOLD}${C_GREEN}ramctl${C_RESET} ${C_CYAN}❯${C_RESET} "
-        input=""
-        
-        while true; do
-            IFS= read -r -n 1 char
-            
-            if [ "$char" == "/" ]; then
-                echo "/"
-                
-                # Floating FZF Pro Max Layout
-                CMD_SELECTED=$(printf "/status   │ [User] Statistik detail RAM & Swap real-time\n/monitor  │ [User] Realtime Live Dashboard TUI (Flicker-Free)\n/storage  │ [Root] Cek kondisi kesehatan & umur UFS/eMMC\n/kill-heavy │ [User] Top 5 aplikasi pemakan RAM terbesar\n/sweep    │ [Root] Bersihkan junk, dalvik-cache, & temp log\n/clean    │ [Root] Paksa Kernel bersihkan drop_caches RAM\n/sysinfo  │ [User] Ringkasan hardware, kernel, & uptime\n/sync     │ [User] Custom Sync (Target File & Commit Msg)\n/help     │ [User] Panduan lengkap penggunaan tool\n/exit     │ [User] Keluar dari shell" | fzf \
-                    --height 50% \
-                    --layout=reverse \
-                    --border=rounded \
-                    --margin=1,2 \
-                    --padding=0,1 \
-                    --delimiter=' │ ' \
-                    --with-nth=1 \
-                    --prompt="⚡ Select Command ❯ " \
-                    --pointer="➜" \
-                    --color="bg+:-1,structure:magenta,fg+:bright-white,prompt:cyan,pointer:green" \
-                    --header="───────────────[ NAVIGATION: ↑/↓ | SELECT: ENTER | EXIT: ESC ]───────────────" \
-                    --preview='echo -e "\n\033[1;33m📌 Deskripsi Fitur:\033[0m\n{2}\n\n\033[1;36m🛡️ Status Akses:\033[0m Auto-elevation via KSUNext Root."' \
-                    --preview-window=right:45%:wrap)
+        read -r input
 
+        # Jika user mengetik '/' atau berawalan '/', buka fzf floating menu
+        if [[ "$input" == /* ]]; then
+            CMD_SELECTED=$(printf "/status   | Status detail RAM & Swap\n/top-apps | Top 10 User Apps pemakan RAM terbesar\n/storage  | Health Life hardware UFS/eMMC (Root)\n/clean    | Paksa Kernel bersihkan cache RAM (Root)\n/sweep    | Bersihkan file junk & cache app (Root)\n/sysinfo  | Ringkasan OS & Kernel\n/sync     | Custom Sync ke GitHub (Target File & Commit Msg)\n/help     | Bantuan\n/exit     | Keluar" | fzf \
+                --height 40% \
+                --layout=reverse \
+                --border=rounded \
+                --delimiter=' \| ' \
+                --with-nth=1 \
+                --query="$input" \
+                --prompt="⚡ Pilih Perintah ❯ " \
+                --pointer="➜" \
+                --color="bg+:-1,fg+:bright-white,prompt:cyan,pointer:green,border:magenta,header:yellow" \
+                --header="─── [ Panah ↑/↓: Pilih | ENTER: Jalankan | ESC: Batal ] ───" \
+                --preview='echo -e "\n\033[1;33m📌 Deskripsi:\033[0m\n{2}"' \
+                --preview-window=right:45%:wrap)
+
+            if [ -n "$CMD_SELECTED" ]; then
                 input=$(echo "$CMD_SELECTED" | awk '{print $1}')
-                break
-            fi
-
-            if [ -z "$char" ]; then
+            else
                 echo ""
-                break
-            fi
-
-            if [ "$char" == $'\177' ] || [ "$char" == $'\8' ]; then
-                if [ -n "$input" ]; then
-                    input="${input%?}"
-                    printf "\b \b"
-                fi
                 continue
             fi
-
-            input="${input}${char}"
-            printf "%s" "$char"
-        done
+        fi
 
         case "$input" in
             /status)
                 ramctl_fetch_memory
-                echo -e "\n${C_BOLD}${C_CYAN}─── Status Memori ───${C_RESET}"
-                echo -e "RAM Usage : ${C_GREEN}${MEM_USED} KB${C_RESET} / ${MEM_TOTAL} KB (${MEM_USAGE_PCT}%)"
-                echo -e "RAM Avail : ${C_CYAN}${MEM_AVAIL} KB${C_RESET}"
-                echo -e "Swap Usage: ${SWAP_USED} KB / ${SWAP_TOTAL} KB (${SWAP_PCT}%)\n"
+                echo -e "\n${C_BOLD}${C_CYAN}─── Status RAM & Swap ───${C_RESET}"
+                echo -e "RAM Total   : ${MEM_TOTAL} KB"
+                echo -e "RAM Used    : ${C_GREEN}${MEM_USED} KB${C_RESET} (${MEM_USAGE_PCT}%)"
+                echo -e "RAM Avail   : ${C_CYAN}${MEM_AVAIL} KB${C_RESET}"
+                echo -e "Swap Total  : ${SWAP_TOTAL} KB"
+                echo -e "Swap Used   : ${SWAP_USED} KB (${SWAP_PCT}%)\n"
                 ;;
-            /monitor)
-                ramctl_tui_live
-                clear
+            /top-apps)
+                echo ""
+                ramctl_top_user_apps
+                echo -e "\n${C_GRAY}Ingin menghentikan salah satu aplikasi di atas?${C_RESET}"
+                read -p "$(echo -e ${C_YELLOW}"Masukkan PID (Kosongkan jika tidak): "${C_RESET})" target_pid
+                if [ -n "$target_pid" ]; then
+                    ramctl_run_as_root "kill -9 $target_pid 2>/dev/null || true"
+                    echo -e "${C_GREEN}✓ Aplikasi PID $target_pid berhasil di-kill!${C_RESET}\n"
+                else
+                    echo ""
+                fi
                 ;;
             /storage)
                 echo ""
                 ramctl_run_as_root "ramctl_fetch_storage_health"
                 echo ""
                 ;;
-            /kill-heavy)
-                echo -e "\n${C_BOLD}${C_CYAN}─── Top 5 Proses Pemakan RAM ───${C_RESET}"
-                ps -eo pid,ppid,cmd,%mem,%cpu --sort=-%mem | head -n 6
-                echo ""
-                ;;
-            /sweep)
-                echo -e "${C_YELLOW}Membersihkan cache aplikasi & log sistem...${C_RESET}"
-                ramctl_run_as_root "rm -rf /data/local/tmp/* /sdcard/Android/data/*/cache/* 2>/dev/null || true"
-                echo -e "${C_GREEN}✓ Junk berhasil dibersihkan via Root!${C_RESET}\n"
-                ;;
             /clean)
                 echo -e "${C_YELLOW}Clearing RAM Drop Caches...${C_RESET}"
                 ramctl_run_as_root "echo 3 > /proc/sys/vm/drop_caches"
                 echo -e "${C_GREEN}✓ Cache RAM berhasil dibersihkan via Root!${C_RESET}\n"
+                ;;
+            /sweep)
+                echo -e "${C_YELLOW}Membersihkan cache & temp log...${C_RESET}"
+                ramctl_run_as_root "rm -rf /data/local/tmp/* /sdcard/Android/data/*/cache/* 2>/dev/null || true"
+                echo -e "${C_GREEN}✓ Junk file berhasil dibersihkan!${C_RESET}\n"
                 ;;
             /sysinfo)
                 echo -e "\n${C_BOLD}${C_CYAN}─── System Info ───${C_RESET}"
@@ -93,37 +79,29 @@ ramctl_interactive_shell() {
                 echo -e "Device    : $(getprop ro.product.model 2>/dev/null || echo 'Android Device')\n"
                 ;;
             /sync)
-                echo -e "\n${C_BOLD}${C_CYAN}⚙️  RAMCTL PRO MAX AUTO-SYNC ENGINE${C_RESET}"
+                echo -e "\n${C_BOLD}${C_CYAN}⚙️  RAMCTL AUTO-SYNC ENGINE${C_RESET}"
                 echo -e "${C_GRAY}───────────────────────────────────────${C_RESET}"
                 
-                # Custom Target File Selection
-                read -p "$(echo -e ${C_YELLOW}"Target File/Folder [Tekan Enter untuk SEMUA (.): "${C_RESET})" target_path
-                if [ -z "$target_path" ]; then
-                    target_path="."
-                fi
+                read -p "$(echo -e ${C_YELLOW}"Target File/Folder [Enter untuk Semua (.)]: "${C_RESET})" target_path
+                [ -z "$target_path" ] && target_path="."
 
-                # Custom Commit Message Selection
-                read -p "$(echo -e ${C_YELLOW}"Pesan Commit [Tekan Enter untuk Default]: "${C_RESET})" custom_msg
-                if [ -z "$custom_msg" ]; then
-                    custom_msg="update: routine maintenance and sync ($target_path)"
-                fi
+                read -p "$(echo -e ${C_YELLOW}"Pesan Commit [Enter untuk Default]: "${C_RESET})" custom_msg
+                [ -z "$custom_msg" ] && custom_msg="update: maintenance & sync ($target_path)"
 
-                echo -e "\n${C_CYAN}[1/4] Rebuilding & Reinstalling lokal...${C_RESET}"
+                echo -e "\n${C_CYAN}[1/3] Re-installing lokal...${C_RESET}"
                 cd ~/ramctl 2>/dev/null || true
                 ./install.sh >/dev/null 2>&1
 
-                echo -e "${C_CYAN}[2/4] Staging target: '${target_path}'...${C_RESET}"
+                echo -e "${C_CYAN}[2/3] Staging & Commit ('$target_path')...${C_RESET}"
                 git add "$target_path"
-
-                echo -e "${C_CYAN}[3/4] Creating commit...${C_RESET}"
                 git commit -m "$custom_msg"
 
-                echo -e "${C_CYAN}[4/4] Pushing to GitHub Private...${C_RESET}"
+                echo -e "${C_CYAN}[3/3] Pushing to GitHub Private...${C_RESET}"
                 git push origin main
 
-                echo -e "\n${C_GREEN}✓ SYNC SUCCESSFUL!${C_RESET}"
-                echo -e "  Target  : ${C_BOLD}$target_path${C_RESET}"
-                echo -e "  Message : ${C_BOLD}\"$custom_msg\"${C_RESET}\n"
+                echo -e "\n${C_GREEN}✓ SYNC BERHASIL!${C_RESET}"
+                echo -e "  Target  : $target_path"
+                echo -e "  Message : \"$custom_msg\"\n"
                 ;;
             /help)
                 echo ""
@@ -131,14 +109,14 @@ ramctl_interactive_shell() {
                 echo ""
                 ;;
             /exit)
-                echo -e "${C_GRAY}Sampai jumpa bro!${C_RESET}"
+                echo -e "${C_GRAY}Sampai jumpa!${C_RESET}"
                 break
                 ;;
             "")
                 ;;
             *)
                 if [ -n "$input" ]; then
-                    echo -e "${C_RED}Perintah '${input}' tidak valid! Tekan '/' untuk membuka menu Pro Max.${C_RESET}\n"
+                    echo -e "${C_RED}Perintah '${input}' tidak dikenal. Ketik '/' untuk membuka menu.${C_RESET}\n"
                 fi
                 ;;
         esac

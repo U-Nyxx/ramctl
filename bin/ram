@@ -5,16 +5,15 @@ RAMCTL_LIB="${PREFIX}/lib/ramctl"
 if [ -f "${RAMCTL_LIB}/core.sh" ]; then
     source "${RAMCTL_LIB}/core.sh"
     source "${RAMCTL_LIB}/collector.sh"
-    source "${RAMCTL_LIB}/tui.sh"
+    source "${RAMCTL_LIB}/tui.sh" 2>/dev/null || true
     source "${RAMCTL_LIB}/prompt.sh"
 else
     source "$(dirname "$0")/../lib/ramctl/core.sh"
     source "$(dirname "$0")/../lib/ramctl/collector.sh"
-    source "$(dirname "$0")/../lib/ramctl/tui.sh"
+    source "$(dirname "$0")/../lib/ramctl/tui.sh" 2>/dev/null || true
     source "$(dirname "$0")/../lib/ramctl/prompt.sh"
 fi
 
-# Jika tanpa argumen, langsung masuk ke Interactive Slash Shell
 if [ $# -eq 0 ]; then
     ramctl_interactive_shell
     exit 0
@@ -23,28 +22,18 @@ fi
 case "$1" in
     status)
         ramctl_fetch_memory
-        echo -e "${C_BOLD}--- Status Penggunaan Memori ---${C_RESET}"
-        echo -e "RAM Usage   : ${C_GREEN}${MEM_USED} KB${C_RESET} / ${MEM_TOTAL} KB (${MEM_USAGE_PCT}%)"
-        echo -e "RAM Avail   : ${C_CYAN}${MEM_AVAIL} KB${C_RESET}"
-        echo -e "Swap Usage  : ${SWAP_USED} KB / ${SWAP_TOTAL} KB (${SWAP_PCT}%)"
+        echo -e "${C_BOLD}--- Status Memori ---${C_RESET}"
+        echo -e "RAM Usage : ${C_GREEN}${MEM_USED} KB${C_RESET} / ${MEM_TOTAL} KB (${MEM_USAGE_PCT}%)"
+        echo -e "RAM Avail : ${C_CYAN}${MEM_AVAIL} KB${C_RESET}"
+        echo -e "Swap Usage: ${SWAP_USED} KB / ${SWAP_TOTAL} KB (${SWAP_PCT}%)"
         ;;
     storage)
-        ramctl_fetch_storage_health
-        ;;
-    monitor)
-        ramctl_tui_live
+        ramctl_run_as_root "ramctl_fetch_storage_health"
         ;;
     clean)
-        if [ "$2" == "--drop-caches" ]; then
-            ramctl_check_root
-            echo 3 > /proc/sys/vm/drop_caches
-            echo -e "${C_GREEN}✓ Cache RAM berhasil dibersihkan!${C_RESET}"
-        else
-            echo -e "${C_RED}Error: Opsi tidak lengkap.${C_RESET}"
-            echo -e "Penggunaan: ${C_CYAN}ram clean --drop-caches${C_RESET}"
-        fi
+        ramctl_run_as_root "echo 3 > /proc/sys/vm/drop_caches"
+        echo -e "${C_GREEN}✓ Cache RAM berhasil dibersihkan!${C_RESET}"
         ;;
-    -h|--help)
         ramctl_show_help
         ;;
     -v|--version)
