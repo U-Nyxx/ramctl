@@ -15,8 +15,7 @@ ramctl_interactive_shell() {
             if [ "$char" == "/" ]; then
                 echo "/"
                 
-                # Dynamic Menu dengan Detail Preview Window (Compact Layout)
-                CMD_SELECTED=$(printf "/status | [User] Cek penggunaan statistik RAM & Swap\n/monitor | [User] Dashboard monitor TUI realtime tanpa flicker\n/storage | [Root] Evaluasi kesehatan hardware UFS/eMMC Life\n/kill-heavy | [User] Cari & tampilkan 5 proses pemakan RAM terbesar\n/sweep | [Root] Sapu bersih cache app, dalvik, & temp log sistem\n/clean | [Root] Paksa Kernel melepas RAM cache (drop_caches)\n/sysinfo | [User] Informasi detail OS, Kernel, Uptime, & Perangkat\n/sync | [User] Re-install sistem lokal & Auto-Push ke GitHub\n/help | [User] Tampilkan panduan lengkap penggunaan\n/exit | [User] Keluar dari shell interaktif" | fzf \
+                CMD_SELECTED=$(printf "/status | [User] Cek penggunaan statistik RAM & Swap\n/monitor | [User] Dashboard monitor TUI realtime tanpa flicker\n/storage | [Root] Evaluasi kesehatan hardware UFS/eMMC Life\n/kill-heavy | [User] Cari & tampilkan 5 proses pemakan RAM terbesar\n/sweep | [Root] Sapu bersih cache app, dalvik, & temp log sistem\n/clean | [Root] Paksa Kernel melepas RAM cache (drop_caches)\n/sysinfo | [User] Informasi detail OS, Kernel, Uptime, & Perangkat\n/sync | [User] Re-install lokal & Custom Commit Push ke GitHub\n/help | [User] Tampilkan panduan lengkap penggunaan\n/exit | [User] Keluar dari shell interaktif" | fzf \
                     --height 45% \
                     --layout=reverse \
                     --border=rounded \
@@ -87,13 +86,25 @@ ramctl_interactive_shell() {
                 echo -e "Device    : $(getprop ro.product.model 2>/dev/null || echo 'Android Device')\n"
                 ;;
             /sync)
-                echo -e "\n${C_YELLOW}Syncing ke GitHub Private...${C_RESET}"
+                echo -e "\n${C_BOLD}${C_CYAN}--- Custom Auto Sync Engine ---${C_RESET}"
+                read -p "Masukkan pesan commit (Kosongkan jika ingin default): " custom_msg
+                
+                if [ -z "$custom_msg" ]; then
+                    custom_msg="update: routine maintenance and code sync"
+                fi
+
+                echo -e "${C_YELLOW}1. Memperbarui instalasi lokal...${C_RESET}"
                 cd ~/ramctl 2>/dev/null || true
                 ./install.sh >/dev/null 2>&1
+
+                echo -e "${C_YELLOW}2. Staging & Commit file...${C_RESET}"
                 git add .
-                git commit -m "feat: compact UI with detail preview window"
+                git commit -m "$custom_msg"
+
+                echo -e "${C_YELLOW}3. Push ke GitHub Private...${C_RESET}"
                 git push origin main
-                echo -e "${C_GREEN}✓ Berhasil terinstall & ter-push ke GitHub!${C_RESET}\n"
+
+                echo -e "${C_GREEN}✓ Selesai! Pesan commit: \"$custom_msg\"${C_RESET}\n"
                 ;;
             /help)
                 echo ""
