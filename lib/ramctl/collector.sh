@@ -23,9 +23,30 @@ ramctl_fetch_memory() {
     fi
 }
 
+ramctl_exec_storage_health() {
+    echo -e "${C_BOLD}${C_CYAN}─── Hardware Health Status (UFS / eMMC) ───${C_RESET}"
+    ramctl_run_as_root '
+    found=0
+    for node in /sys/class/scsi_host/host*/device/ufs_health_descriptor/life_time_estimation_a \
+                /sys/devices/platform/soc/*.ufs/health_descriptor/life_time_estimation_a \
+                /sys/block/mmcblk0/device/life_time; do
+        if [ -f "$node" ]; then
+            found=1
+            val_a=$(cat "$node" 2>/dev/null)
+            node_b="${node%_a}_b"
+            val_b=$(cat "$node_b" 2>/dev/null)
+            echo "Health Life (Type A) : ${val_a:-N/A}"
+            [ -n "$val_b" ] && echo "Health Life (Type B) : ${val_b}"
+            break
+        fi
+    done
+    [ $found -eq 0 ] && echo "Node UFS/eMMC Health tidak dapat diakses pada kernel ini."
+    '
+}
+
 ramctl_top_user_apps() {
-    echo -e "${C_BOLD}${C_CYAN}─── Top Apps Pemakan RAM (User Apps Only) ───${C_RESET}\n"
-    printf "%-8s %-12s %-10s %s\n" "PID" "USER" "RSS(KB)" "NAME"
+    echo -e "${C_BOLD}${C_CYAN}─── Top 10 User Apps Pemakan RAM ───${C_RESET}\n"
+    printf "%-8s %-12s %-10s %s\n" "PID" "USER" "RSS(KB)" "COMMAND"
     echo -e "${C_GRAY}──────────────────────────────────────────────────${C_RESET}"
     
     ps -A -o PID,USER,RSS,NAME 2>/dev/null | grep -E "u0_a[0-9]+" | sort -k3 -n -r | head -n 10 | while read -r pid user rss name; do

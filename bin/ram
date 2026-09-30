@@ -20,25 +20,26 @@ fi
 case "$1" in
     status)
         ramctl_fetch_memory
-        echo -e "${C_BOLD}--- Status Memori ---${C_RESET}"
+        echo -e "${C_BOLD}${C_CYAN}─── BOOSTER Memory Status ───${C_RESET}"
         echo -e "RAM Usage : ${C_GREEN}${MEM_USED} KB${C_RESET} / ${MEM_TOTAL} KB (${MEM_USAGE_PCT}%)"
         echo -e "RAM Avail : ${C_CYAN}${MEM_AVAIL} KB${C_RESET}"
         echo -e "Swap Usage: ${SWAP_USED} KB / ${SWAP_TOTAL} KB (${SWAP_PCT}%)"
         ;;
     storage)
-        ramctl_run_as_root "for node in /sys/class/scsi_host/host*/device/ufs_health_descriptor/life_time_estimation_a /sys/devices/platform/soc/*.ufs/health_descriptor/life_time_estimation_a /sys/block/mmcblk0/device/life_time; do if [ -f \"\$node\" ]; then echo \"Health Indicator A: \$(cat \$node 2>/dev/null)\"; break; fi; done"
+        ramctl_exec_storage_health
         ;;
     clean)
         ramctl_run_as_root "echo 3 > /proc/sys/vm/drop_caches"
-        echo -e "${C_GREEN}✓ Cache RAM berhasil dibersihkan!${C_RESET}"
+        echo -e "${C_GREEN}✓ Cache RAM berhasil dibersihkan via Root!${C_RESET}"
         ;;
     -h|--help)
         ramctl_show_help
         ;;
     -v|--version)
-        echo "ramctl version ${RAMCTL_VERSION}"
+        echo "BOOSTER Engine version ${RAMCTL_VERSION}"
         ;;
     *)
         ramctl_unknown_cmd "$1"
         ;;
 esac
+
