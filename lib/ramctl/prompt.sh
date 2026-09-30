@@ -3,31 +3,39 @@
 ramctl_interactive_shell() {
     clear
     echo -e "${C_BOLD}${C_CYAN}=== RAMCTL Interactive Shell ===${C_RESET}"
-    echo -e "${C_GRAY}Tekan tombol ${C_YELLOW}/${C_GRAY} untuk langsung membuka menu, atau ketik perintah manual.${C_RESET}\n"
+    echo -e "${C_GRAY}Tekan tombol ${C_YELLOW}/${C_GRAY} untuk membuka Floating Command Navbar, atau ketik perintah.${C_RESET}\n"
 
     while true; do
         printf "ramctl > "
         input=""
         
         while true; do
-            # Baca per 1 karakter langsung tanpa nunggu enter
             IFS= read -r -n 1 char
             
-            # Jika karakter yang diketik adalah '/'
             if [ "$char" == "/" ]; then
                 echo "/"
-                CMD_SELECTED=$(printf "/status - Lihat statistik RAM & Swap\n/monitor - Realtime TUI Live Dashboard\n/storage - Health Life UFS / eMMC (Auto Root)\n/kill-heavy - Top 5 Apps pemakan RAM terbesar\n/sweep - Bersihkan Junk & Cache aplikasi (Auto Root)\n/clean - Drop Caches RAM (Auto Root)\n/sysinfo - Ringkasan Perangkat & Kernel\n/sync - Auto Commit & Push ke GitHub Private\n/help - Bantuan\n/exit - Keluar" | fzf --height 40% --layout=reverse --border --prompt="Pilih Perintah > " --header="Gunakan panah [↑/↓] lalu [ENTER]")
+                
+                # Dynamic Menu dengan Detail Preview Window (Compact Layout)
+                CMD_SELECTED=$(printf "/status | [User] Cek penggunaan statistik RAM & Swap\n/monitor | [User] Dashboard monitor TUI realtime tanpa flicker\n/storage | [Root] Evaluasi kesehatan hardware UFS/eMMC Life\n/kill-heavy | [User] Cari & tampilkan 5 proses pemakan RAM terbesar\n/sweep | [Root] Sapu bersih cache app, dalvik, & temp log sistem\n/clean | [Root] Paksa Kernel melepas RAM cache (drop_caches)\n/sysinfo | [User] Informasi detail OS, Kernel, Uptime, & Perangkat\n/sync | [User] Re-install sistem lokal & Auto-Push ke GitHub\n/help | [User] Tampilkan panduan lengkap penggunaan\n/exit | [User] Keluar dari shell interaktif" | fzf \
+                    --height 45% \
+                    --layout=reverse \
+                    --border=rounded \
+                    --delimiter=' \| ' \
+                    --with-nth=1 \
+                    --prompt="⚡ Select Cmd > " \
+                    --header="[↑/↓] Navigasi  |  [ENTER] Pilih  |  [ESC] Batal" \
+                    --preview='echo -e "\n\033[1;36mInformasi Perintah:\033[0m\n{2}\n\n\033[1;90mStatus Hak Akses:\033[0m Akses otomatis ditangani oleh KSUNext."' \
+                    --preview-window=right:45%:wrap)
+
                 input=$(echo "$CMD_SELECTED" | awk '{print $1}')
                 break
             fi
 
-            # Jika menekan Enter
             if [ -z "$char" ]; then
                 echo ""
                 break
             fi
 
-            # Jika menekan Backspace
             if [ "$char" == $'\177' ] || [ "$char" == $'\8' ]; then
                 if [ -n "$input" ]; then
                     input="${input%?}"
@@ -36,7 +44,6 @@ ramctl_interactive_shell() {
                 continue
             fi
 
-            # Karakter biasa
             input="${input}${char}"
             printf "%s" "$char"
         done
@@ -84,7 +91,7 @@ ramctl_interactive_shell() {
                 cd ~/ramctl 2>/dev/null || true
                 ./install.sh >/dev/null 2>&1
                 git add .
-                git commit -m "feat: instant triggered slash command menu"
+                git commit -m "feat: compact UI with detail preview window"
                 git push origin main
                 echo -e "${C_GREEN}✓ Berhasil terinstall & ter-push ke GitHub!${C_RESET}\n"
                 ;;
