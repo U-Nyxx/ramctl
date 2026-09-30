@@ -3,15 +3,43 @@
 ramctl_interactive_shell() {
     clear
     echo -e "${C_BOLD}${C_CYAN}=== RAMCTL Interactive Shell ===${C_RESET}"
-    echo -e "${C_GRAY}Ketik ${C_YELLOW}/${C_GRAY} untuk membuka Floating Command Navbar, atau ${C_RED}/exit${C_GRAY} untuk keluar.${C_RESET}\n"
+    echo -e "${C_GRAY}Tekan tombol ${C_YELLOW}/${C_GRAY} untuk langsung membuka menu, atau ketik perintah manual.${C_RESET}\n"
 
     while true; do
-        read -p "ramctl > " input
+        printf "ramctl > "
+        input=""
+        
+        while true; do
+            # Baca per 1 karakter langsung tanpa nunggu enter
+            IFS= read -r -n 1 char
+            
+            # Jika karakter yang diketik adalah '/'
+            if [ "$char" == "/" ]; then
+                echo "/"
+                CMD_SELECTED=$(printf "/status - Lihat statistik RAM & Swap\n/monitor - Realtime TUI Live Dashboard\n/storage - Health Life UFS / eMMC (Auto Root)\n/kill-heavy - Top 5 Apps pemakan RAM terbesar\n/sweep - Bersihkan Junk & Cache aplikasi (Auto Root)\n/clean - Drop Caches RAM (Auto Root)\n/sysinfo - Ringkasan Perangkat & Kernel\n/sync - Auto Commit & Push ke GitHub Private\n/help - Bantuan\n/exit - Keluar" | fzf --height 40% --layout=reverse --border --prompt="Pilih Perintah > " --header="Gunakan panah [↑/↓] lalu [ENTER]")
+                input=$(echo "$CMD_SELECTED" | awk '{print $1}')
+                break
+            fi
 
-        if [ "$input" == "/" ]; then
-            CMD_SELECTED=$(printf "/status - Lihat statistik RAM & Swap\n/monitor - Realtime TUI Live Dashboard\n/storage - Health Life UFS / eMMC (Auto Root)\n/kill-heavy - Top 5 Apps pemakan RAM terbesar\n/sweep - Bersihkan Junk & Cache aplikasi (Auto Root)\n/clean - Drop Caches RAM (Auto Root)\n/sysinfo - Ringkasan Perangkat & Kernel\n/sync - Auto Commit & Push ke GitHub Private\n/help - Bantuan\n/exit - Keluar" | fzf --height 40% --layout=reverse --border --prompt="Pilih Perintah > " --header="Gunakan panah [↑/↓] lalu [ENTER]")
-            input=$(echo "$CMD_SELECTED" | awk '{print $1}')
-        fi
+            # Jika menekan Enter
+            if [ -z "$char" ]; then
+                echo ""
+                break
+            fi
+
+            # Jika menekan Backspace
+            if [ "$char" == $'\177' ] || [ "$char" == $'\8' ]; then
+                if [ -n "$input" ]; then
+                    input="${input%?}"
+                    printf "\b \b"
+                fi
+                continue
+            fi
+
+            # Karakter biasa
+            input="${input}${char}"
+            printf "%s" "$char"
+        done
 
         case "$input" in
             /status)
@@ -56,7 +84,7 @@ ramctl_interactive_shell() {
                 cd ~/ramctl 2>/dev/null || true
                 ./install.sh >/dev/null 2>&1
                 git add .
-                git commit -m "auto-update: full integration auto-root & slash menu"
+                git commit -m "feat: instant triggered slash command menu"
                 git push origin main
                 echo -e "${C_GREEN}✓ Berhasil terinstall & ter-push ke GitHub!${C_RESET}\n"
                 ;;
@@ -73,7 +101,7 @@ ramctl_interactive_shell() {
                 ;;
             *)
                 if [ -n "$input" ]; then
-                    echo -e "${C_RED}Perintah '${input}' tidak valid! Ketik '/' untuk membuka menu.${C_RESET}\n"
+                    echo -e "${C_RED}Perintah '${input}' tidak valid! Tekan '/' untuk membuka menu.${C_RESET}\n"
                 fi
                 ;;
         esac
