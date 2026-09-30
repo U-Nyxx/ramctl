@@ -19,11 +19,7 @@ fi
 
 case "$1" in
     status)
-        ramctl_fetch_memory
-        echo -e "${C_BOLD}${C_CYAN}─── BOOSTER Memory Status ───${C_RESET}"
-        echo -e "RAM Usage : ${C_GREEN}${MEM_USED} KB${C_RESET} / ${MEM_TOTAL} KB (${MEM_USAGE_PCT}%)"
-        echo -e "RAM Avail : ${C_CYAN}${MEM_AVAIL} KB${C_RESET}"
-        echo -e "Swap Usage: ${SWAP_USED} KB / ${SWAP_TOTAL} KB (${SWAP_PCT}%)"
+        ramctl_live_status_dashboard
         ;;
     storage)
         ramctl_exec_storage_health
@@ -42,4 +38,3 @@ case "$1" in
         ramctl_unknown_cmd "$1"
         ;;
 esac
-

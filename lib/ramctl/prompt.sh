@@ -7,7 +7,7 @@ ramctl_get_saved_pet() {
     if [ -f "$PET_CONFIG_FILE" ]; then
         cat "$PET_CONFIG_FILE"
     else
-        echo "cat"
+        echo "boba"
     fi
 }
 
@@ -22,25 +22,36 @@ ramctl_render_pet() {
     
     case "$mode" in
         prabowo)
-            if [ "$frame" -eq 0 ]; then
-                echo -e "${C_CYAN}   /\\___/\\   \n  (  o.o  )  [ GENERAL CAT - PRABOWO ]\n   (   \"   )  BOOSTER Engine v2.0\n    \\_^_/    Status: High Performance${C_RESET}"
-            else
-                echo -e "${C_CYAN}   /\\___/\\   \n  (  -.-  )  [ GENERAL CAT - PRABOWO ]\n   (   =   )  BOOSTER Engine v2.0\n    \\_^_/    Status: High Performance${C_RESET}"
-            fi
+            case "$frame" in
+                0) echo -e "${C_CYAN}   /\\___/\\   \n  (  o.o  )  [ GENERAL CAT - PRABOWO EDITION ]\n   (   \"   )  BOOSTER Engine v2.0 - Active\n    \\_^_/    Ready to Optimize!${C_RESET}" ;;
+                1) echo -e "${C_CYAN}   /\\___/\\   \n  (  -.-  )  [ GENERAL CAT - PRABOWO EDITION ]\n   (   =   )  BOOSTER Engine v2.0 - Active\n    \\_^_/    Ready to Optimize!${C_RESET}" ;;
+                2) echo -e "${C_CYAN}   /\\___/\\   \n  (  o.o  )  [ GENERAL CAT - PRABOWO EDITION ]\n   (   o   )  BOOSTER Engine v2.0 - Active\n    \\_^_/    Ready to Optimize!${C_RESET}" ;;
+                3) echo -e "${C_CYAN}   /\\___/\\   \n  (  ^.^  )  [ GENERAL CAT - PRABOWO EDITION ]\n   (   \"   )  BOOSTER Engine v2.0 - Active\n    \\_^_/    Ready to Optimize!${C_RESET}" ;;
+            esac
             ;;
-        petdex)
-            if [ "$frame" -eq 0 ]; then
-                echo -e "${C_MAGENTA}   /\\_/\\  \n  (  v.v )  [ PETDEX DEV CUSTOM ]\n  /  |  \\   BOOSTER Engine v2.0\n  (__|__)   Status: Animated Active${C_RESET}"
-            else
-                echo -e "${C_MAGENTA}   /\\_/\\  \n  (  o.o )  [ PETDEX DEV CUSTOM ]\n  /  |  \\   BOOSTER Engine v2.0\n  (__|__)   Status: Animated Active${C_RESET}"
-            fi
+        eva)
+            case "$frame" in
+                0) echo -e "${C_MAGENTA}   [====]   \n  (  o o  )  [ EVA MASKOT - PETDEX ]\n   \\  =  /   BOOSTER Engine v2.0\n    \\___/    Scanning Kernel Memory...${C_RESET}" ;;
+                1) echo -e "${C_MAGENTA}   [====]   \n  (  - -  )  [ EVA MASKOT - PETDEX ]\n   \\  o  /   BOOSTER Engine v2.0\n    \\___/    Scanning Kernel Memory...${C_RESET}" ;;
+                2) echo -e "${C_MAGENTA}   [====]   \n  (  o o  )  [ EVA MASKOT - PETDEX ]\n   \\  -  /   BOOSTER Engine v2.0\n    \\___/    Scanning Kernel Memory...${C_RESET}" ;;
+                3) echo -e "${C_MAGENTA}   [====]   \n  (  ^ ^  )  [ EVA MASKOT - PETDEX ]\n   \\  v  /   BOOSTER Engine v2.0\n    \\___/    Scanning Kernel Memory...${C_RESET}" ;;
+            esac
             ;;
-        cat|*)
-            if [ "$frame" -eq 0 ]; then
-                echo -e "${C_YELLOW}   /\\_/\\   \n  ( o.o )  BOOSTER ENGINE v2.0\n   > ^ <   Status: Active & Optimized${C_RESET}"
-            else
-                echo -e "${C_YELLOW}   /\\_/\\   \n  ( -.- )  BOOSTER ENGINE v2.0\n   > ^ <   Status: Active & Optimized${C_RESET}"
-            fi
+        doraemon)
+            case "$frame" in
+                0) echo -e "${C_CYAN}   / (o)(o) \\ \n  (    ==   ) [ DORAEMON PETDEX ]\n   /        \\  BOOSTER Engine v2.0\n  (____/\____) System Helper Active${C_RESET}" ;;
+                1) echo -e "${C_CYAN}   / (-)(-) \\ \n  (    ==   ) [ DORAEMON PETDEX ]\n   /   o    \\  BOOSTER Engine v2.0\n  (____/\____) System Helper Active${C_RESET}" ;;
+                2) echo -e "${C_CYAN}   / (o)(o) \\ \n  (    --   ) [ DORAEMON PETDEX ]\n   /        \\  BOOSTER Engine v2.0\n  (____/\____) System Helper Active${C_RESET}" ;;
+                3) echo -e "${C_CYAN}   / (^)(^) \\ \n  (    ==   ) [ DORAEMON PETDEX ]\n   /   ♥    \\  BOOSTER Engine v2.0\n  (____/\____) System Helper Active${C_RESET}" ;;
+            esac
+            ;;
+        boba|cat|*)
+            case "$frame" in
+                0) echo -e "${C_YELLOW}   /\\_/\\   \n  ( o.o )  [ BOBA OTTER - PETDEX ]\n   > ^ <   BOOSTER ENGINE v2.0\n  (  u u ) Status: Active & High-Performance${C_RESET}" ;;
+                1) echo -e "${C_YELLOW}   /\\_/\\   \n  ( -.- )  [ BOBA OTTER - PETDEX ]\n   > ^ <   BOOSTER ENGINE v2.0\n  (  u u ) Status: Active & High-Performance${C_RESET}" ;;
+                2) echo -e "${C_YELLOW}   /\\_/\\   \n  ( o.o )  [ BOBA OTTER - PETDEX ]\n   > o <   BOOSTER ENGINE v2.0\n  (  u u ) Status: Active & High-Performance${C_RESET}" ;;
+                3) echo -e "${C_YELLOW}   /\\_/\\   \n  ( ^.^ )  [ BOBA OTTER - PETDEX ]\n   > ^ <   BOOSTER ENGINE v2.0\n  (  u u ) Status: Active & High-Performance${C_RESET}" ;;
+            esac
             ;;
     esac
 }
@@ -51,44 +62,52 @@ ramctl_live_status_dashboard() {
     local active_pet
     active_pet=$(ramctl_get_saved_pet)
     
-    # Sinyal Ctrl+C dikembalikan aman ke prompt utama
-    trap 'tput cnorm; echo -e "\n${C_GRAY}[Dibatalkan via Ctrl+C]${C_RESET}\n"; return' INT
+    trap 'tput cnorm; echo -e "\n${C_GRAY}[Kembali ke BOOSTER Shell via Ctrl+C]${C_RESET}\n"; return' INT
 
     local frame=0
-    echo -e "${C_GRAY}Tekan ${C_YELLOW}Ctrl+C${C_GRAY} untuk kembali ke prompt BOOSTER.${C_RESET}\n"
+    echo -e "${C_GRAY}Tekan ${C_RED}Ctrl+C${C_GRAY} untuk kembali ke prompt shell.${C_RESET}\n"
 
     while true; do
         tput cup 2 0
         ramctl_fetch_memory
         ramctl_render_pet "$active_pet" "$frame"
         
-        echo -e "\n${C_BOLD}${C_CYAN}─── BOOSTER LIVE MEMORY DASHBOARD ───${C_RESET}"
+        echo -e "\n${C_BOLD}${C_CYAN}┌────────────────────────────────────────────────────────┐${C_RESET}"
+        echo -e "${C_BOLD}${C_CYAN}│  ⚡ LIVE KINETIC MEMORY & KERNEL DASHBOARD             │${C_RESET}"
+        echo -e "${C_BOLD}${C_CYAN}└────────────────────────────────────────────────────────┘${C_RESET}"
         
-        local bar=""
-        local filled=$((MEM_USAGE_PCT / 5))
+        local bar_ram=""
+        local filled_ram=$((MEM_USAGE_PCT / 5))
         for ((i=0; i<20; i++)); do
-            if [ $i -lt $filled ]; then bar="${bar}█"; else bar="${bar}░"; fi
+            if [ $i -lt $filled_ram ]; then bar_ram="${bar_ram}█"; else bar_ram="${bar_ram}░"; fi
         done
         
-        echo -e "RAM Usage  : [${C_GREEN}${bar}${C_RESET}] ${MEM_USAGE_PCT}% (${MEM_USED} / ${MEM_TOTAL} KB)"
-        echo -e "RAM Avail  : ${C_CYAN}${MEM_AVAIL} KB${C_RESET}"
-        echo -e "Swap Usage : ${SWAP_USED} / ${SWAP_TOTAL} KB (${SWAP_PCT}%)"
-        echo -e "Uptime     : $(uptime -p 2>/dev/null || uptime)"
+        local bar_swap=""
+        local filled_swap=$((SWAP_PCT / 5))
+        for ((i=0; i<20; i++)); do
+            if [ $i -lt $filled_swap ]; then bar_swap="${bar_swap}█"; else bar_swap="${bar_swap}░"; fi
+        done
+
+        echo -e " RAM Usage  : [${C_GREEN}${bar_ram}${C_RESET}] ${C_BOLD}${MEM_USAGE_PCT}%${C_RESET} (${MEM_USED} / ${MEM_TOTAL} KB)"
+        echo -e " RAM Avail  : ${C_CYAN}${MEM_AVAIL} KB${C_RESET}"
+        echo -e " Swap Usage : [${C_YELLOW}${bar_swap}${C_RESET}] ${C_BOLD}${SWAP_PCT}%${C_RESET} (${SWAP_USED} / ${SWAP_TOTAL} KB)"
+        echo -e " Kernel     : $(uname -sr)"
+        echo -e " Uptime     : $(uptime -p 2>/dev/null || uptime)"
         
-        frame=$(((frame + 1) % 2))
-        sleep 1
+        frame=$(((frame + 1) % 4))
+        sleep 0.5
     done
     tput cnorm
 }
 
 ramctl_interactive_shell() {
     clear
-    trap '' INT  # Abaikan Ctrl+C di shell utama agar tidak langsung keluar tools
+    trap '' INT
     
     local current_pet
     current_pet=$(ramctl_get_saved_pet)
     ramctl_render_pet "$current_pet" 0
-    echo -e "${C_GRAY}Tekan ${C_YELLOW}/${C_GRAY} untuk membuka Floating Navbar instan.${C_RESET}\n"
+    echo -e "\n${C_GRAY}Tekan ${C_YELLOW}/${C_GRAY} untuk membuka Floating Navbar instan, atau ketik perintah.${C_RESET}\n"
 
     local commands=("/status" "/top-apps" "/storage" "/clean" "/sweep" "/sysinfo" "/pet" "/sync" "/help" "/exit")
 
@@ -103,7 +122,7 @@ ramctl_interactive_shell() {
 
             if [ "$char" == "/" ] && [ -z "$input" ]; then
                 echo "/"
-                CMD_SELECTED=$(printf "/status   | Live Dashboard Statistik RAM, Swap, & Animasi\n/top-apps | Analisis Top 10 User Apps pemakan RAM\n/storage  | Evaluasi Hardware Life UFS/eMMC (Root)\n/clean    | Force Kernel Release Cache RAM (Root)\n/sweep    | Sapu bersih Junk & Cache aplikasi (Root)\n/sysinfo  | Informasi Ringkas OS, Kernel, & Device\n/pet      | Custom Ganti Pet Maskot Permanen\n/sync     | Custom Git Sync ke Private Repository\n/help     | Bantuan Penggunaan\n/exit     | Keluar dari Tools BOOSTER" | fzf \
+                CMD_SELECTED=$(printf "/status   | Live Kinetic TUI Dashboard (RAM, Swap, & Pet Animasi)\n/top-apps | Analisis Top 10 User Apps pemakan RAM\n/storage  | Evaluasi Hardware Life UFS/eMMC (Root)\n/clean    | Force Kernel Release Cache RAM (Root)\n/sweep    | Sapu bersih Junk & Cache aplikasi (Root)\n/sysinfo  | Informasi Ringkas OS, Kernel, & Device\n/pet      | Ganti Maskot Animasi Petdex Permanen\n/sync     | Custom Git Sync ke Private Repository\n/help     | Bantuan Penggunaan\n/exit     | Keluar Shell Tools" | fzf \
                     --height 50% \
                     --layout=reverse \
                     --border=rounded \
@@ -208,13 +227,14 @@ ramctl_interactive_shell() {
                 echo -e "Device    : $(getprop ro.product.model 2>/dev/null || echo 'Android Device')\n"
                 ;;
             /pet)
-                echo -e "\n${C_BOLD}${C_CYAN}--- Custom Pet Selector (Persistent) ---${C_RESET}"
-                read -p "$(echo -e ${C_YELLOW}"Pilih Maskot Permanen (cat / prabowo / petdex): "${C_RESET})" pet_choice
+                echo -e "\n${C_BOLD}${C_CYAN}--- Petdex.dev Custom Mascot Selector ---${C_RESET}"
+                echo -e "Pilihan Pet: ${C_YELLOW}boba${C_RESET} | ${C_YELLOW}eva${C_RESET} | ${C_YELLOW}doraemon${C_RESET} | ${C_YELLOW}prabowo${C_RESET} | ${C_YELLOW}cat${C_RESET}"
+                read -p "$(echo -e ${C_YELLOW}"Ketik Nama Maskot: "${C_RESET})" pet_choice
                 if [ -n "$pet_choice" ]; then
                     ramctl_save_pet "$pet_choice"
                     clear
                     ramctl_render_pet "$pet_choice" 0
-                    echo -e "\n${C_GREEN}✓ Maskot '$pet_choice' berhasil disimpan secara permanen!${C_RESET}\n"
+                    echo -e "\n${C_GREEN}✓ Maskot Petdex '$pet_choice' berhasil disimpan & aktif secara permanen!${C_RESET}\n"
                 fi
                 ;;
             /sync)

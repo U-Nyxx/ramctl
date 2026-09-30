@@ -12,7 +12,6 @@ C_CYAN='\033[36m'
 C_MAGENTA='\033[35m'
 C_GRAY='\033[90m'
 
-# Menjalankan perintah privileged via Root tanpa crash subshell
 ramctl_run_as_root() {
     local cmd="$1"
     if [ "$(id -u)" -ne 0 ]; then
@@ -26,7 +25,7 @@ ramctl_show_help() {
     echo -e "${C_BOLD}${C_CYAN}BOOSTER Engine${C_RESET} v${RAMCTL_VERSION}"
     echo -e "${C_GRAY}Penggunaan:${C_RESET} ram [subcommand]\n"
     echo -e "${C_BOLD}Perintah Utama:${C_RESET}"
-    echo -e "  ${C_GREEN}status${C_RESET}      Cek statistik detail RAM & Swap"
+    echo -e "  ${C_GREEN}status${C_RESET}      Live Kinetic TUI Dashboard RAM & Swap"
     echo -e "  ${C_GREEN}storage${C_RESET}     Evaluasi kesehatan hardware UFS / eMMC"
     echo -e "  ${C_GREEN}clean${C_RESET}       Drop caches RAM via Kernel Root\n"
 }
